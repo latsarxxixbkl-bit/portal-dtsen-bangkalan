@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portal DTSEN Bangkalan
 
-## Getting Started
+Portal pengelolaan izin pemanfaatan **Data Tunggal Sosial Ekonomi Nasional (DTSEN)** di Kabupaten Bangkalan.
 
-First, run the development server:
+> Pemohon (OPD) → Verifikator (Bapperida) → E-Wali Data (Diskominfo) → Pengelola DTSEN (Dinas Sosial) → Pelaporan Pemanfaatan (30 hari).
+
+## Stack
+
+- **Next.js 16** (App Router, React 19, Turbopack)
+- **TypeScript** + **Tailwind CSS v4** + **shadcn/ui** (Radix preset Nova)
+- **Supabase** (Postgres + Auth + Storage) — free tier
+- **Prisma 7** (pg adapter)
+- **Resend** untuk notifikasi email
+- **Vercel** untuk hosting (auto-deploy dari GitHub)
+
+## Setup lokal
 
 ```bash
+# 1. Install dependencies
+npm install
+
+# 2. Copy environment template & isi nilainya
+cp .env.example .env.local
+# isi NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+# SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL, RESEND_API_KEY
+
+# 3. Sinkronkan skema database
+npx prisma db push
+
+# 4. Seed master OPD
+npx tsx prisma/seed.ts
+
+# 5. Jalankan dev server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Buka [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Struktur direktori
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+  app/
+    (auth)/        → halaman login, daftar, lupa password
+    auth/callback/ → callback Supabase
+    dashboard/     → shell dashboard untuk semua role
+    page.tsx       → landing page publik
+  components/      → UI (shadcn) + komponen aplikasi
+  lib/
+    auth/          → server actions auth & session helper
+    supabase/      → client (browser, server, proxy)
+    prisma.ts      → Prisma singleton
+    constants.ts   → enum label & konstanta
+prisma/
+  schema.prisma    → model: User, Opd, Permohonan, DokumenPermohonan,
+                     RiwayatPermohonan, BerkasDtsen, LaporanPemanfaatan,
+                     RiwayatLaporan, LaporanReminderLog, Notifikasi
+  seed.ts          → master OPD Pemkab Bangkalan
+proxy.ts           → Next.js 16 "Proxy" (auth refresh & route protection)
+```
 
-## Learn More
+## Roadmap pengembangan
 
-To learn more about Next.js, take a look at the following resources:
+| Hari | Fokus |
+| ---- | ----- |
+| 1 | Bootstrap: design system, auth, schema, landing, dashboard shell |
+| 2–3 | Modul User & OPD, form permohonan, upload 4 PDF |
+| 4–5 | State machine permohonan, audit trail, notifikasi |
+| 6–7 | Modul Pelaporan + cron reminder H-7…H+30 |
+| 8 | Dashboard, statistik, export, polish UI |
+| 9 | UAT end-to-end, screen recording |
+| 10 | Production deploy + handover |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Lisensi & kepemilikan
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dikembangkan untuk Pemerintah Kabupaten Bangkalan oleh Latsar XXIX (latsar.xxix.bkl@gmail.com).
