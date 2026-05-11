@@ -71,6 +71,12 @@ proxy.ts           → Next.js 16 "Proxy" (auth refresh & route protection)
 | 9 | UAT end-to-end, screen recording |
 | 10 | Production deploy + handover |
 
+## Dokumentasi
+
+- **[docs/RUNBOOK.md](docs/RUNBOOK.md)** — panduan pengguna per peran (Pemohon, Verifikator, E-Wali, Pengelola DTSEN)
+- **[docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md)** — panduan administrator (kelola user, OPD, monitoring, troubleshooting)
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — catatan deployment, env vars, backup, security, upgrade path
+
 ## Lisensi & kepemilikan
 
 Dikembangkan untuk Pemerintah Kabupaten Bangkalan oleh Latsar XXIX (latsar.xxix.bkl@gmail.com).
