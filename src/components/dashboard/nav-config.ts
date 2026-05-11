@@ -68,8 +68,7 @@ export function navForRole(
       {
         title: "Permohonan",
         items: [
-          { href: "/dashboard/permohonan/antrian", label: "Antrian Verifikasi", icon: FileCheck2 },
-          { href: "/dashboard/permohonan", label: "Semua Permohonan", icon: Files },
+          { href: "/dashboard/permohonan", label: "Antrian Verifikasi", icon: FileCheck2 },
         ],
       },
       {
@@ -88,8 +87,7 @@ export function navForRole(
       {
         title: "Permohonan",
         items: [
-          { href: "/dashboard/permohonan/antrian", label: "Antrian E-Wali", icon: FileCheck2 },
-          { href: "/dashboard/permohonan", label: "Semua Permohonan", icon: Files },
+          { href: "/dashboard/permohonan", label: "Antrian E-Wali", icon: FileCheck2 },
         ],
       },
       { title: "Akun", items: COMMON_BOTTOM },
@@ -102,8 +100,7 @@ export function navForRole(
       {
         title: "Permohonan",
         items: [
-          { href: "/dashboard/permohonan/antrian", label: "Antrian Persetujuan", icon: FileCheck2 },
-          { href: "/dashboard/permohonan", label: "Semua Permohonan", icon: Files },
+          { href: "/dashboard/permohonan", label: "Antrian Persetujuan", icon: FileCheck2 },
         ],
       },
       {

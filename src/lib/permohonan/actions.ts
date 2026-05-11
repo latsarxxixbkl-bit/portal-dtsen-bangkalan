@@ -15,6 +15,7 @@ import { uploadFile, BUCKETS, removeFile } from "@/lib/storage";
 import { availableActions, STATUS_HANDLER } from "@/lib/workflow/permohonan";
 import { generateNomorSurat } from "@/lib/workflow/numbering";
 import { DOKUMEN_WAJIB } from "@/lib/constants";
+import { notifyTransition } from "@/lib/notifikasi/service";
 
 const PermohonanSchema = z.object({
   judul: z.string().min(8, "Judul minimal 8 karakter").max(200),
@@ -176,6 +177,15 @@ export async function submitPermohonan(
     }),
   ]);
 
+  // Notifikasi: ke Verifikator
+  await notifyTransition({
+    permohonanId: created.id,
+    fromStatus: "DRAFT",
+    toStatus: "VERIFIKATOR_REVIEW",
+    actorId: user.id,
+    actorRole: user.role,
+  });
+
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/permohonan");
   redirect(`/dashboard/permohonan/${created.id}?baru=1`);
@@ -255,6 +265,15 @@ export async function applyWorkflowAction(
       },
     }),
   ]);
+
+  await notifyTransition({
+    permohonanId,
+    fromStatus,
+    toStatus,
+    actorId: user.id,
+    actorRole: user.role,
+    catatan: catatan?.trim() || null,
+  });
 
   revalidatePath("/dashboard");
   revalidatePath("/dashboard/permohonan");
@@ -344,6 +363,14 @@ export async function uploadBerkasDtsen(
       },
     }),
   ]);
+
+  await notifyTransition({
+    permohonanId,
+    fromStatus: "DISETUJUI",
+    toStatus: "SELESAI",
+    actorId: user.id,
+    actorRole: user.role,
+  });
 
   revalidatePath("/dashboard");
   revalidatePath(`/dashboard/permohonan/${permohonanId}`);
