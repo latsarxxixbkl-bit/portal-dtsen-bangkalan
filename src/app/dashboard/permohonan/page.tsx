@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FilePlus2 } from "lucide-react";
+import { Download, FilePlus2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -46,13 +46,22 @@ export default async function PermohonanListPage() {
               : "Permohonan yang relevan untuk peran Kak."}
           </p>
         </div>
-        {user.role === "PEMOHON" && (
-          <Button asChild>
-            <Link href="/dashboard/permohonan/baru">
-              <FilePlus2 className="me-2 size-4" /> Permohonan Baru
-            </Link>
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {list.length > 0 && (
+            <Button asChild variant="outline">
+              <a href="/api/export/permohonan" download>
+                <Download className="me-2 size-4" /> Export CSV
+              </a>
+            </Button>
+          )}
+          {user.role === "PEMOHON" && (
+            <Button asChild>
+              <Link href="/dashboard/permohonan/baru">
+                <FilePlus2 className="me-2 size-4" /> Permohonan Baru
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {list.length === 0 ? (

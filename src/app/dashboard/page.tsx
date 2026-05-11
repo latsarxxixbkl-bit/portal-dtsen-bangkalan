@@ -22,6 +22,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { RoleBadge } from "@/components/role-badge";
+import { StatBarChart } from "@/components/dashboard/stat-bar-chart";
 import { requireUser } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import {
@@ -125,6 +126,20 @@ export default async function DashboardHome() {
       : Promise.resolve(0),
   ]);
 
+  // Chart data — distribusi status permohonan (untuk semua peran selain Pemohon)
+  const showCharts = user.role !== "PEMOHON";
+  const statusBuckets = showCharts
+    ? await prisma.permohonan
+        .groupBy({ by: ["status"], _count: { status: true } })
+        .catch(() => [])
+    : [];
+  const statusChartData = showCharts
+    ? Object.entries(STATUS_PERMOHONAN_LABEL).map(([key, label]) => ({
+        label,
+        value: statusBuckets.find((s) => s.status === key)?._count.status ?? 0,
+      }))
+    : [];
+
   const namaDepan = user.nama.split(" ")[0];
   const now = new Date();
 
@@ -223,6 +238,20 @@ export default async function DashboardHome() {
                   {permohonanSelesai.toLocaleString("id-ID")}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      {showCharts && (
+        <section>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Distribusi Status Permohonan</CardTitle>
+              <CardDescription>Snapshot kondisi seluruh permohonan saat ini.</CardDescription>
+            </CardHeader>
+            <CardContent className="text-primary">
+              <StatBarChart data={statusChartData} />
             </CardContent>
           </Card>
         </section>

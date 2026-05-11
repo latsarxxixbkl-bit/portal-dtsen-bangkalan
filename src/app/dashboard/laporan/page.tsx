@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Clock3, FileText } from "lucide-react";
+import { Clock3, Download, FileText } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -34,13 +34,22 @@ export default async function LaporanListPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Laporan Pemanfaatan</h1>
-        <p className="text-sm text-muted-foreground">
-          {user.role === "PEMOHON"
-            ? "Laporan yang harus Kak kirim setelah menerima data DTSEN."
-            : "Laporan pemanfaatan data DTSEN dari seluruh OPD."}
-        </p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Laporan Pemanfaatan</h1>
+          <p className="text-sm text-muted-foreground">
+            {user.role === "PEMOHON"
+              ? "Laporan yang harus Kak kirim setelah menerima data DTSEN."
+              : "Laporan pemanfaatan data DTSEN dari seluruh OPD."}
+          </p>
+        </div>
+        {list.length > 0 && (
+          <Button asChild variant="outline">
+            <a href="/api/export/laporan" download>
+              <Download className="me-2 size-4" /> Export CSV
+            </a>
+          </Button>
+        )}
       </div>
 
       {list.length === 0 ? (
