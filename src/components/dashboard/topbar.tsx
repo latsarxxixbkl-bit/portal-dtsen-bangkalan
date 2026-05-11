@@ -16,15 +16,12 @@ import {
 import { logoutAction } from "@/lib/auth/actions";
 
 import { DashboardSidebar } from "./sidebar";
-import type { NavSection } from "./nav-config";
 
 export function DashboardTopbar({
-  sections,
   user,
   pageTitle,
   unreadCount = 0,
 }: {
-  sections: NavSection[];
   user: {
     nama: string;
     role: "PEMOHON" | "VERIFIKATOR" | "EWALI_DATA" | "PENGELOLA_DTSEN" | "ADMIN";
@@ -48,7 +45,7 @@ export function DashboardTopbar({
               <SheetTitle>Menu</SheetTitle>
               <SheetDescription>Navigasi Portal DTSEN Bangkalan</SheetDescription>
             </SheetHeader>
-            <DashboardSidebar sections={sections} user={user} />
+            <DashboardSidebar user={user} />
           </SheetContent>
         </Sheet>
         <div className="text-sm font-medium text-muted-foreground">{pageTitle ?? "Dashboard"}</div>

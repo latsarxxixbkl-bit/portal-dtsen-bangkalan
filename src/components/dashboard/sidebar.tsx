@@ -7,13 +7,11 @@ import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BrandLockup } from "@/components/brand";
 import { RoleBadge } from "@/components/role-badge";
-import type { NavSection } from "./nav-config";
+import { navForRole } from "./nav-config";
 
 export function DashboardSidebar({
-  sections,
   user,
 }: {
-  sections: NavSection[];
   user: {
     nama: string;
     role: "PEMOHON" | "VERIFIKATOR" | "EWALI_DATA" | "PENGELOLA_DTSEN" | "ADMIN";
@@ -21,6 +19,7 @@ export function DashboardSidebar({
   };
 }) {
   const pathname = usePathname();
+  const sections = navForRole(user.role);
 
   return (
     <aside className="flex h-full w-full flex-col gap-4 border-e bg-sidebar text-sidebar-foreground">
