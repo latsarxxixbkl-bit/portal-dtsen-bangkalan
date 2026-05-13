@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { requireUser } from "@/lib/auth/session";
+import { fetchTemplatPublicMap } from "@/lib/templat/queries";
 
 import { PermohonanForm } from "./form";
 
 export const metadata: Metadata = { title: "Permohonan Baru" };
+export const dynamic = "force-dynamic";
 
 export default async function PermohonanBaruPage() {
   const user = await requireUser();
@@ -43,6 +45,12 @@ export default async function PermohonanBaruPage() {
     );
   }
 
+  const templatRaw = await fetchTemplatPublicMap();
+  const templatMap: Record<string, { id: string; fileName: string } | undefined> = {};
+  for (const [k, v] of Object.entries(templatRaw)) {
+    templatMap[k] = { id: v.id, fileName: v.fileName };
+  }
+
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
@@ -61,7 +69,7 @@ export default async function PermohonanBaruPage() {
           <CardDescription>OPD Pemohon: {user.opdNama}</CardDescription>
         </CardHeader>
         <CardContent>
-          <PermohonanForm />
+          <PermohonanForm templatMap={templatMap} />
         </CardContent>
       </Card>
     </div>

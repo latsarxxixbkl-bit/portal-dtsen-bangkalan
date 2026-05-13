@@ -121,6 +121,7 @@ export function navForRole(
       items: [
         { href: "/dashboard/admin/users", label: "Pengguna", icon: Users },
         { href: "/dashboard/admin/opd", label: "OPD", icon: Files },
+        { href: "/dashboard/admin/templat", label: "Template Surat", icon: FileText },
       ],
     },
     {

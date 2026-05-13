@@ -50,6 +50,27 @@ enum JenisDokumen {
   @@schema("public")
 }
 
+/// Template surat yang bisa diunduh OPD untuk membuat dokumen permohonan.
+/// Dikelola oleh ADMIN. 1 jenis = 1 template aktif terbaru.
+model TemplatSurat {
+  id            String       @id @default(uuid()) @db.Uuid
+  jenisDokumen  JenisDokumen @unique @map("jenis_dokumen")
+  nama          String
+  deskripsi     String?
+  filePath      String       @map("file_path")
+  fileName      String       @map("file_name")
+  mimeType      String       @map("mime_type")
+  sizeBytes     Int          @map("size_bytes")
+  uploadedById  String       @map("uploaded_by_id") @db.Uuid
+  uploadedAt    DateTime     @default(now()) @map("uploaded_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  uploadedBy User @relation("TemplatUploaderRel", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@map("templat_surat")
+  @@schema("public")
+}
+
 enum StatusPermohonan {
   DRAFT
   DIAJUKAN
@@ -161,6 +182,7 @@ model User {
   laporanBapperidaRev LaporanPemanfaatan[]  @relation("ReviewerBapperidaRel")
   laporanDinsosRev    LaporanPemanfaatan[]  @relation("ReviewerDinsosRel")
   riwayatLaporan      RiwayatLaporan[]
+  templatUploaded     TemplatSurat[]        @relation("TemplatUploaderRel")
 
   @@index([opdId])
   @@index([role])

@@ -53,15 +53,31 @@ export default async function LaporanListPage() {
       </div>
 
       {list.length === 0 ? (
-        <Card>
+        <Card data-testid="laporan-empty-state">
           <CardContent className="flex flex-col items-center justify-center gap-3 py-16 text-center">
             <div className="flex size-12 items-center justify-center rounded-full bg-secondary text-secondary-foreground">
               <FileText className="size-6" />
             </div>
             <div className="text-base font-medium">Belum ada laporan</div>
-            <div className="text-sm text-muted-foreground">
-              Laporan dibuat otomatis setelah Berkas DTSEN diserahkan ke OPD pemohon.
+            <div className="max-w-md text-sm text-muted-foreground">
+              {user.role === "PEMOHON" ? (
+                <>
+                  Laporan Pemanfaatan akan otomatis muncul di sini <b>30 hari setelah</b> Pengelola DTSEN
+                  (Dinsos) menyerahkan Berkas DTSEN ke Kak. Setelah muncul, klik &quot;Buka&quot; untuk mengisi
+                  form &amp; mengunggah PDF pendukung kegiatan.
+                </>
+              ) : (
+                <>
+                  Belum ada permohonan yang sampai tahap penyerahan Berkas DTSEN. Laporan dibuat otomatis
+                  saat status permohonan berubah jadi SELESAI.
+                </>
+              )}
             </div>
+            {user.role === "PEMOHON" && (
+              <Button asChild variant="outline" size="sm" className="mt-2">
+                <Link href="/dashboard/permohonan">Lihat status permohonan saya</Link>
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (

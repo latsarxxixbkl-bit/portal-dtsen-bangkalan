@@ -55,6 +55,15 @@ export async function GET(req: Request) {
     bucket = BUCKETS.LAPORAN_PENDUKUNG;
     path = l.filePendukungPath;
     permohonanId = l.permohonanId;
+  } else if (type === "templat") {
+    // Template surat — accessible to all authenticated users (semua role bisa download)
+    const t = await prisma.templatSurat.findUnique({
+      where: { id },
+      select: { filePath: true },
+    });
+    if (!t) return NextResponse.json({ error: "Tidak ditemukan" }, { status: 404 });
+    const signed = await signedUrl(BUCKETS.TEMPLAT_SURAT, t.filePath, 300);
+    return NextResponse.redirect(signed);
   } else {
     return NextResponse.json({ error: "type tidak dikenali" }, { status: 400 });
   }

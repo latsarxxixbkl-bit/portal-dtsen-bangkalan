@@ -9,6 +9,7 @@ export const BUCKETS = {
   PERMOHONAN_DOKUMEN: "permohonan-dokumen",
   BERKAS_DTSEN: "berkas-dtsen",
   LAPORAN_PENDUKUNG: "laporan-pendukung",
+  TEMPLAT_SURAT: "templat-surat",
 } as const;
 
 export type BucketName = (typeof BUCKETS)[keyof typeof BUCKETS];
@@ -20,12 +21,33 @@ export async function ensureBuckets(): Promise<void> {
   if (listErr) throw listErr;
   const have = new Set((existing ?? []).map((b) => b.name));
 
-  for (const name of Object.values(BUCKETS)) {
+  // PDF-only private buckets
+  const pdfOnlyBuckets = [
+    BUCKETS.PERMOHONAN_DOKUMEN,
+    BUCKETS.BERKAS_DTSEN,
+    BUCKETS.LAPORAN_PENDUKUNG,
+  ] as const;
+  for (const name of pdfOnlyBuckets) {
     if (have.has(name)) continue;
     const { error } = await admin.storage.createBucket(name, {
       public: false,
       fileSizeLimit: 10 * 1024 * 1024, // 10 MB
       allowedMimeTypes: ["application/pdf"],
+    });
+    if (error && !/already exists/i.test(error.message)) throw error;
+  }
+
+  // Templat surat — private (download via signed URL), accept multi-format up to 20MB
+  if (!have.has(BUCKETS.TEMPLAT_SURAT)) {
+    const { error } = await admin.storage.createBucket(BUCKETS.TEMPLAT_SURAT, {
+      public: false,
+      fileSizeLimit: 20 * 1024 * 1024, // 20 MB
+      allowedMimeTypes: [
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/msword",
+        "application/vnd.oasis.opendocument.text",
+      ],
     });
     if (error && !/already exists/i.test(error.message)) throw error;
   }
