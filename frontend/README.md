@@ -1,70 +1,82 @@
-# Getting Started with Create React App
+# Portal DTSEN Bangkalan
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Portal pengelolaan izin pemanfaatan **Data Tunggal Sosial Ekonomi Nasional (DTSEN)** di Kabupaten Bangkalan.
 
-## Available Scripts
+> Pemohon (OPD) → Verifikator (Bapperida) → E-Wali Data (Diskominfo) → Pengelola DTSEN (Dinas Sosial) → Pelaporan Pemanfaatan (30 hari).
 
-In the project directory, you can run:
+## Stack
 
-### `npm start`
+- **Next.js 16** (App Router, React 19, Turbopack)
+- **TypeScript** + **Tailwind CSS v4** + **shadcn/ui** (Radix preset Nova)
+- **Supabase** (Postgres + Auth + Storage) — free tier
+- **Prisma 7** (pg adapter)
+- **Resend** untuk notifikasi email
+- **Vercel** untuk hosting (auto-deploy dari GitHub)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Setup lokal
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```bash
+# 1. Install dependencies
+npm install
 
-### `npm test`
+# 2. Copy environment template & isi nilainya
+cp .env.example .env.local
+# isi NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+# SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL, RESEND_API_KEY
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+# 3. Sinkronkan skema database
+npx prisma db push
 
-### `npm run build`
+# 4. Seed master OPD
+npx tsx prisma/seed.ts
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+# 5. Jalankan dev server
+npm run dev
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Buka [http://localhost:3000](http://localhost:3000).
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Struktur direktori
 
-### `npm run eject`
+```
+src/
+  app/
+    (auth)/        → halaman login, daftar, lupa password
+    auth/callback/ → callback Supabase
+    dashboard/     → shell dashboard untuk semua role
+    page.tsx       → landing page publik
+  components/      → UI (shadcn) + komponen aplikasi
+  lib/
+    auth/          → server actions auth & session helper
+    supabase/      → client (browser, server, proxy)
+    prisma.ts      → Prisma singleton
+    constants.ts   → enum label & konstanta
+prisma/
+  schema.prisma    → model: User, Opd, Permohonan, DokumenPermohonan,
+                     RiwayatPermohonan, BerkasDtsen, LaporanPemanfaatan,
+                     RiwayatLaporan, LaporanReminderLog, Notifikasi
+  seed.ts          → master OPD Pemkab Bangkalan
+proxy.ts           → Next.js 16 "Proxy" (auth refresh & route protection)
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+## Roadmap pengembangan
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+| Hari | Fokus |
+| ---- | ----- |
+| 1 | Bootstrap: design system, auth, schema, landing, dashboard shell |
+| 2–3 | Modul User & OPD, form permohonan, upload 4 PDF |
+| 4–5 | State machine permohonan, audit trail, notifikasi |
+| 6–7 | Modul Pelaporan + cron reminder H-7…H+30 |
+| 8 | Dashboard, statistik, export, polish UI |
+| 9 | UAT end-to-end, screen recording |
+| 10 | Production deploy + handover |
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Dokumentasi
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **[docs/RUNBOOK.md](docs/RUNBOOK.md)** — panduan pengguna per peran (Pemohon, Verifikator, E-Wali, Pengelola DTSEN)
+- **[docs/ADMIN-GUIDE.md](docs/ADMIN-GUIDE.md)** — panduan administrator (kelola user, OPD, monitoring, troubleshooting)
+- **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)** — catatan deployment, env vars, backup, security, upgrade path
 
-## Learn More
+## Lisensi & kepemilikan
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Dikembangkan untuk Pemerintah Kabupaten Bangkalan oleh Latsar XXIX (latsar.xxix.bkl@gmail.com).

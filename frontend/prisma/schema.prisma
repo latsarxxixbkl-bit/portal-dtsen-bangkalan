@@ -1,0 +1,387 @@
+// Portal DTSEN Bangkalan — Prisma schema
+// Database: Supabase Postgres
+//
+// Pemohon (OPD) → Verifikator (Bapperida) → E-Wali (Diskominfo) → Pengelola DTSEN (Dinsos)
+// Setelah data diserahkan, Pemohon wajib kirim Laporan Pemanfaatan dalam 30 hari.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+  schemas  = ["public"]
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Enums
+// ──────────────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  PEMOHON
+  VERIFIKATOR
+  EWALI_DATA
+  PENGELOLA_DTSEN
+  ADMIN
+
+  @@schema("public")
+}
+
+enum JenisOpd {
+  DINAS
+  BADAN
+  KANTOR
+  KECAMATAN
+  KELURAHAN
+  RSUD
+  SEKRETARIAT
+  LAINNYA
+
+  @@schema("public")
+}
+
+enum JenisDokumen {
+  SURAT_PERMINTAAN
+  KAK
+  PAKTA_INTEGRITAS
+  NDA
+
+  @@schema("public")
+}
+
+enum StatusPermohonan {
+  DRAFT
+  DIAJUKAN
+  VERIFIKATOR_REVIEW
+  DITOLAK_VERIFIKATOR
+  EWALI_REVIEW
+  DIKEMBALIKAN_KE_VERIFIKATOR
+  DTSEN_REVIEW
+  DIKEMBALIKAN_KE_EWALI
+  DISETUJUI
+  SELESAI
+
+  @@schema("public")
+}
+
+enum AksiPermohonan {
+  AJUKAN
+  TERIMA
+  TOLAK
+  TERUSKAN
+  KEMBALIKAN
+  SETUJUI
+  UPLOAD_DATA
+  SELESAIKAN
+
+  @@schema("public")
+}
+
+enum StatusLaporan {
+  BELUM_DIKIRIM
+  MENUNGGAK
+  REVIEW_BAPPERIDA
+  REVIEW_DINSOS
+  PERLU_REVISI
+  DISETUJUI
+
+  @@schema("public")
+}
+
+enum AksiLaporan {
+  KIRIM
+  MINTA_REVISI_BAPPERIDA
+  MINTA_REVISI_DINSOS
+  SETUJUI_BAPPERIDA
+  SETUJUI_DINSOS
+
+  @@schema("public")
+}
+
+enum JenisReminder {
+  H_MINUS_7
+  H_MINUS_1
+  H_PLUS_1
+  H_PLUS_7
+  H_PLUS_14
+  H_PLUS_30
+  ESCALATE_ATASAN
+
+  @@schema("public")
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Master data
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Organisasi Perangkat Daerah (OPD) di lingkungan Pemkab Bangkalan.
+model Opd {
+  id           String   @id @default(uuid()) @db.Uuid
+  nama         String
+  jenis        JenisOpd @default(DINAS)
+  kodeOpd      String?  @unique @map("kode_opd")
+  alamat       String?
+  emailResmi   String?  @map("email_resmi")
+  isActive     Boolean  @default(true) @map("is_active")
+  isInternal   Boolean  @default(false) @map("is_internal") /// true untuk Bapperida, Diskominfo, Dinsos
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  users        User[]
+  permohonan   Permohonan[]
+
+  @@map("opd")
+  @@schema("public")
+}
+
+/// User aplikasi. Terhubung ke Supabase Auth via `authUserId`.
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  authUserId  String?  @unique @map("auth_user_id") @db.Uuid /// auth.users.id Supabase
+  email       String   @unique
+  nama        String
+  nip         String?
+  jabatan     String?
+  noHp        String?  @map("no_hp")
+  role        UserRole @default(PEMOHON)
+  opdId       String?  @map("opd_id") @db.Uuid
+  isActive    Boolean  @default(true) @map("is_active")
+  lastLoginAt DateTime? @map("last_login_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  opd                 Opd?                  @relation(fields: [opdId], references: [id], onDelete: SetNull)
+  permohonanDiajukan  Permohonan[]          @relation("PemohonRel")
+  riwayatPermohonan   RiwayatPermohonan[]
+  dokumenUploaded     DokumenPermohonan[]
+  berkasDiserahkan    BerkasDtsen[]
+  notifikasi          Notifikasi[]
+  laporanPelapor      LaporanPemanfaatan[]  @relation("PelaporRel")
+  laporanBapperidaRev LaporanPemanfaatan[]  @relation("ReviewerBapperidaRel")
+  laporanDinsosRev    LaporanPemanfaatan[]  @relation("ReviewerDinsosRel")
+  riwayatLaporan      RiwayatLaporan[]
+
+  @@index([opdId])
+  @@index([role])
+  @@map("users")
+  @@schema("public")
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Permohonan
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Permohonan akses Data DTSEN dari OPD.
+model Permohonan {
+  id                  String           @id @default(uuid()) @db.Uuid
+  nomorSurat          String?          @unique @map("nomor_surat")
+  opdPemohonId        String           @map("opd_pemohon_id") @db.Uuid
+  pemohonId           String           @map("pemohon_id") @db.Uuid
+  judul               String
+  tujuanPenggunaan    String           @map("tujuan_penggunaan")
+  jenisDataDiminta    String           @map("jenis_data_diminta")
+  periodeAwal         DateTime?        @map("periode_awal") @db.Date
+  periodeAkhir        DateTime?        @map("periode_akhir") @db.Date
+  status              StatusPermohonan @default(DRAFT)
+  currentHandlerRole  UserRole?        @map("current_handler_role")
+  catatanTerakhir     String?          @map("catatan_terakhir")
+  diajukanAt          DateTime?        @map("diajukan_at")
+  disetujuiAt         DateTime?        @map("disetujui_at")
+  completedAt         DateTime?        @map("completed_at")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+
+  opdPemohon  Opd                 @relation(fields: [opdPemohonId], references: [id], onDelete: Restrict)
+  pemohon     User                @relation("PemohonRel", fields: [pemohonId], references: [id], onDelete: Restrict)
+  dokumen     DokumenPermohonan[]
+  riwayat     RiwayatPermohonan[]
+  berkasDtsen BerkasDtsen?
+  laporan     LaporanPemanfaatan?
+  notifikasi  Notifikasi[]
+
+  @@index([status])
+  @@index([pemohonId])
+  @@index([opdPemohonId])
+  @@map("permohonan")
+  @@schema("public")
+}
+
+/// 4 dokumen wajib per permohonan: Surat Permintaan, KAK, Pakta Integritas, NDA.
+model DokumenPermohonan {
+  id              String       @id @default(uuid()) @db.Uuid
+  permohonanId    String       @map("permohonan_id") @db.Uuid
+  jenisDokumen    JenisDokumen @map("jenis_dokumen")
+  filePath        String       @map("file_path") /// path di Supabase Storage
+  fileName        String       @map("file_name")
+  fileHashSha256  String       @map("file_hash_sha256")
+  mimeType        String       @default("application/pdf") @map("mime_type")
+  sizeBytes       Int          @map("size_bytes")
+  uploadedById    String       @map("uploaded_by_id") @db.Uuid
+  uploadedAt      DateTime     @default(now()) @map("uploaded_at")
+
+  permohonan Permohonan @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+  uploadedBy User       @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@unique([permohonanId, jenisDokumen]) /// 1 jenis dokumen per permohonan
+  @@index([permohonanId])
+  @@map("dokumen_permohonan")
+  @@schema("public")
+}
+
+/// Audit trail seluruh aksi terhadap permohonan.
+model RiwayatPermohonan {
+  id            String            @id @default(uuid()) @db.Uuid
+  permohonanId  String            @map("permohonan_id") @db.Uuid
+  actorId       String            @map("actor_id") @db.Uuid
+  actorRole     UserRole          @map("actor_role")
+  aksi          AksiPermohonan
+  dariStatus    StatusPermohonan? @map("dari_status")
+  keStatus      StatusPermohonan  @map("ke_status")
+  catatan       String?
+  ipAddress     String?           @map("ip_address")
+  createdAt     DateTime          @default(now()) @map("created_at")
+
+  permohonan Permohonan @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+  actor      User       @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([permohonanId])
+  @@index([actorId])
+  @@map("riwayat_permohonan")
+  @@schema("public")
+}
+
+/// Berkas Data DTSEN final yang diserahkan ke Pemohon.
+model BerkasDtsen {
+  id                String   @id @default(uuid()) @db.Uuid
+  permohonanId      String   @unique @map("permohonan_id") @db.Uuid
+  filePath          String   @map("file_path")
+  fileName          String   @map("file_name")
+  fileHashSha256    String   @map("file_hash_sha256")
+  mimeType          String   @map("mime_type")
+  sizeBytes         Int      @map("size_bytes")
+  diserahkanById    String   @map("diserahkan_by_id") @db.Uuid
+  diserahkanPada    DateTime @default(now()) @map("diserahkan_pada")
+  expiredAt         DateTime? @map("expired_at")
+
+  permohonan   Permohonan @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+  diserahkanBy User       @relation(fields: [diserahkanById], references: [id], onDelete: Restrict)
+
+  @@map("berkas_dtsen")
+  @@schema("public")
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Pelaporan Pemanfaatan
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// Laporan Pemanfaatan Data DTSEN — wajib dikirim Pemohon 30 hari setelah
+/// Berkas DTSEN diserahkan.
+model LaporanPemanfaatan {
+  id                       String        @id @default(uuid()) @db.Uuid
+  permohonanId             String        @unique @map("permohonan_id") @db.Uuid
+  pelaporId                String        @map("pelapor_id") @db.Uuid
+
+  // Isi form
+  judulKegiatan            String        @map("judul_kegiatan")
+  periodeMulai             DateTime      @map("periode_mulai") @db.Date
+  periodeSelesai           DateTime      @map("periode_selesai") @db.Date
+  outputKegiatan           String        @map("output_kegiatan")
+  manfaatData              String        @map("manfaat_data")
+  jumlahRecordData         Int?          @map("jumlah_record_data")
+
+  // Lampiran PDF pendukung
+  filePendukungPath        String?       @map("file_pendukung_path")
+  filePendukungName        String?       @map("file_pendukung_name")
+  filePendukungHashSha256  String?       @map("file_pendukung_hash_sha256")
+  filePendukungSizeBytes   Int?          @map("file_pendukung_size_bytes")
+
+  // Workflow
+  status                   StatusLaporan @default(BELUM_DIKIRIM)
+
+  // Review Bapperida
+  catatanBapperida         String?       @map("catatan_bapperida")
+  direviewBapperidaAt      DateTime?     @map("direview_bapperida_at")
+  direviewBapperidaById    String?       @map("direview_bapperida_by_id") @db.Uuid
+
+  // Review Dinsos
+  catatanDinsos            String?       @map("catatan_dinsos")
+  direviewDinsosAt         DateTime?     @map("direview_dinsos_at")
+  direviewDinsosById       String?       @map("direview_dinsos_by_id") @db.Uuid
+
+  // Timing
+  deadlineAt               DateTime      @map("deadline_at") /// = BerkasDtsen.diserahkanPada + 30 hari
+  dikirimAt                DateTime?     @map("dikirim_at")
+  disetujuiAt              DateTime?     @map("disetujui_at")
+  createdAt                DateTime      @default(now()) @map("created_at")
+  updatedAt                DateTime      @updatedAt @map("updated_at")
+
+  permohonan         Permohonan       @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+  pelapor            User             @relation("PelaporRel", fields: [pelaporId], references: [id], onDelete: Restrict)
+  reviewerBapperida  User?            @relation("ReviewerBapperidaRel", fields: [direviewBapperidaById], references: [id], onDelete: SetNull)
+  reviewerDinsos     User?            @relation("ReviewerDinsosRel", fields: [direviewDinsosById], references: [id], onDelete: SetNull)
+  riwayat            RiwayatLaporan[]
+  reminderLog        LaporanReminderLog[]
+
+  @@index([status])
+  @@index([pelaporId])
+  @@index([deadlineAt])
+  @@map("laporan_pemanfaatan")
+  @@schema("public")
+}
+
+/// Audit trail untuk laporan.
+model RiwayatLaporan {
+  id          String        @id @default(uuid()) @db.Uuid
+  laporanId   String        @map("laporan_id") @db.Uuid
+  actorId     String        @map("actor_id") @db.Uuid
+  actorRole   UserRole      @map("actor_role")
+  aksi        AksiLaporan
+  dariStatus  StatusLaporan? @map("dari_status")
+  keStatus    StatusLaporan  @map("ke_status")
+  catatan     String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  laporan LaporanPemanfaatan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+  actor   User               @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@index([laporanId])
+  @@map("riwayat_laporan")
+  @@schema("public")
+}
+
+/// Log reminder yang sudah dikirim (idempotency).
+model LaporanReminderLog {
+  id              String        @id @default(uuid()) @db.Uuid
+  laporanId       String        @map("laporan_id") @db.Uuid
+  jenisReminder   JenisReminder @map("jenis_reminder")
+  dikirimAt       DateTime      @default(now()) @map("dikirim_at")
+
+  laporan LaporanPemanfaatan @relation(fields: [laporanId], references: [id], onDelete: Cascade)
+
+  @@unique([laporanId, jenisReminder])
+  @@map("laporan_reminder_log")
+  @@schema("public")
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Notifikasi
+// ──────────────────────────────────────────────────────────────────────────────
+
+model Notifikasi {
+  id            String   @id @default(uuid()) @db.Uuid
+  userId        String   @map("user_id") @db.Uuid
+  permohonanId  String?  @map("permohonan_id") @db.Uuid
+  judul         String
+  isi           String
+  linkUrl       String?  @map("link_url")
+  dibacaAt      DateTime? @map("dibaca_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permohonan Permohonan? @relation(fields: [permohonanId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dibacaAt])
+  @@map("notifikasi")
+  @@schema("public")
+}
