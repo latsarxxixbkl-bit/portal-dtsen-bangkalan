@@ -14,6 +14,7 @@ import {
 
 import { BrandLockup, BrandMark } from "@/components/brand";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TanyaBapperidaFab } from "@/components/tanya-bapperida-fab";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -283,6 +284,9 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      {/* Floating "Tanya Bapperida" WhatsApp button */}
+      <TanyaBapperidaFab />
     </main>
   );
 }
