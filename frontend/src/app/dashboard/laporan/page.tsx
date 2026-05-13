@@ -14,9 +14,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { requireUser } from "@/lib/auth/session";
-import { fetchLaporanList } from "@/lib/laporan/queries";
+import { fetchEligiblePermohonanForLaporan, fetchLaporanList } from "@/lib/laporan/queries";
 import { laporanBadgeVariant } from "@/lib/workflow/laporan";
 import { STATUS_LAPORAN_LABEL } from "@/lib/constants";
+
+import { TambahPelaporanButton, type EligibleItem } from "./tambah-pelaporan-button";
 
 export const metadata: Metadata = { title: "Laporan Pemanfaatan" };
 export const dynamic = "force-dynamic";
@@ -32,24 +34,43 @@ export default async function LaporanListPage() {
   const list = await fetchLaporanList({ userId: user.id, role: user.role });
   const now = new Date();
 
+  // Untuk pemohon: cari permohonan yang siap dilaporkan (status SELESAI, laporan masih bisa diisi)
+  let eligibleItems: EligibleItem[] = [];
+  if (user.role === "PEMOHON") {
+    const raw = await fetchEligiblePermohonanForLaporan(user.id);
+    eligibleItems = raw
+      .filter((r) => r.laporan)
+      .map((r) => ({
+        permohonanId: r.id,
+        judul: r.judul,
+        nomorSurat: r.nomorSurat,
+        laporanId: r.laporan!.id,
+        laporanStatus: r.laporan!.status as keyof typeof STATUS_LAPORAN_LABEL,
+        deadlineAt: r.laporan!.deadlineAt,
+      }));
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-testid="laporan-list-page">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Laporan Pemanfaatan</h1>
           <p className="text-sm text-muted-foreground">
             {user.role === "PEMOHON"
-              ? "Laporan yang harus Kak kirim setelah menerima data DTSEN."
+              ? "Laporan yang harus Kak kirim setelah menerima Berkas Data DTSEN."
               : "Laporan pemanfaatan data DTSEN dari seluruh OPD."}
           </p>
         </div>
-        {list.length > 0 && (
-          <Button asChild variant="outline">
-            <a href="/api/export/laporan" download>
-              <Download className="me-2 size-4" /> Export CSV
-            </a>
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {user.role === "PEMOHON" && <TambahPelaporanButton items={eligibleItems} />}
+          {list.length > 0 && (
+            <Button asChild variant="outline">
+              <a href="/api/export/laporan" download>
+                <Download className="me-2 size-4" /> Export CSV
+              </a>
+            </Button>
+          )}
+        </div>
       </div>
 
       {list.length === 0 ? (
@@ -62,8 +83,9 @@ export default async function LaporanListPage() {
             <div className="max-w-md text-sm text-muted-foreground">
               {user.role === "PEMOHON" ? (
                 <>
-                  Laporan Pemanfaatan akan otomatis muncul di sini <b>30 hari setelah</b> Pengelola DTSEN
-                  (Dinsos) menyerahkan Berkas DTSEN ke Kak. Setelah muncul, klik &quot;Buka&quot; untuk mengisi
+                  Laporan Pemanfaatan otomatis dibuat saat Pengelola DTSEN (Dinas Sosial) menyerahkan Berkas
+                  DTSEN ke Kak, dengan deadline 30 hari. Setelah itu, klik tombol{" "}
+                  <b>&quot;Tambah Pelaporan&quot;</b> di atas atau &quot;Buka&quot; di baris ini untuk mengisi
                   form &amp; mengunggah PDF pendukung kegiatan.
                 </>
               ) : (
@@ -99,7 +121,7 @@ export default async function LaporanListPage() {
                 );
                 const overdue = sisaHari < 0 && l.status !== "DISETUJUI";
                 return (
-                  <TableRow key={l.id}>
+                  <TableRow key={l.id} data-testid={`laporan-row-${l.id}`}>
                     <TableCell className="align-top max-w-[360px]">
                       <div className="line-clamp-2 text-sm font-medium">
                         {l.permohonan.judul}
@@ -135,7 +157,7 @@ export default async function LaporanListPage() {
                       </Badge>
                     </TableCell>
                     <TableCell className="align-top text-right">
-                      <Button asChild variant="outline" size="sm">
+                      <Button asChild variant="outline" size="sm" data-testid={`laporan-open-${l.id}`}>
                         <Link href={`/dashboard/laporan/${l.id}`}>Buka</Link>
                       </Button>
                     </TableCell>

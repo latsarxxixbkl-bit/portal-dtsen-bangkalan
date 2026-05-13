@@ -53,6 +53,38 @@ export async function fetchLaporanDetail(id: string) {
   });
 }
 
+/**
+ * Daftar permohonan milik pemohon yang sudah dapat Berkas DTSEN (status SELESAI)
+ * dan laporannya masih bisa diisi/diedit (belum DISETUJUI/REVIEW_DINSOS).
+ * Dipakai oleh dialog "Tambah Pelaporan" di halaman /dashboard/laporan.
+ */
+export async function fetchEligiblePermohonanForLaporan(userId: string) {
+  return prisma.permohonan.findMany({
+    where: {
+      pemohonId: userId,
+      status: "SELESAI",
+      laporan: {
+        // Hanya yang masih perlu diisi pemohon
+        status: { in: ["BELUM_DIKIRIM", "MENUNGGAK", "PERLU_REVISI"] },
+      },
+    },
+    select: {
+      id: true,
+      judul: true,
+      nomorSurat: true,
+      laporan: {
+        select: {
+          id: true,
+          status: true,
+          deadlineAt: true,
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+    take: 50,
+  });
+}
+
 export function canViewLaporan(
   user: { id: string; role: UserRole },
   laporan: { pelaporId: string },
