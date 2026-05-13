@@ -1,26 +1,23 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Allow Emergent preview URLs (cross-origin dev requests)
+  // Allow cross-origin dev requests dari preview environment (Emergent, ngrok, dll).
+  // Di Vercel production, host = origin secara default, jadi tidak perlu konfigurasi tambahan.
   allowedDevOrigins: [
     "*.preview.emergentagent.com",
     "*.preview.emergentcf.cloud",
     "*.cluster-12.preview.emergentcf.cloud",
-    "3af38edc-cee1-436f-8ec3-13f7f0086c70.preview.emergentagent.com",
-    "3af38edc-cee1-436f-8ec3-13f7f0086c70.cluster-12.preview.emergentcf.cloud",
-    "finish-app-18.cluster-12.preview.emergentcf.cloud",
   ],
   experimental: {
     serverActions: {
-      // Emergent pakai 2 domain: preview.emergentagent.com (external) dan
-      // cluster-12.preview.emergentcf.cloud (internal). Server Actions check origin vs host.
+      // Whitelist origin untuk Server Actions. Emergent preview pakai dual-domain
+      // (preview.emergentagent.com & cluster-12.preview.emergentcf.cloud).
+      // Vercel production: app domain otomatis di-allow.
       allowedOrigins: [
-        "3af38edc-cee1-436f-8ec3-13f7f0086c70.preview.emergentagent.com",
-        "3af38edc-cee1-436f-8ec3-13f7f0086c70.cluster-12.preview.emergentcf.cloud",
         "*.preview.emergentagent.com",
         "*.preview.emergentcf.cloud",
         "*.cluster-12.preview.emergentcf.cloud",
-        "finish-app-18.cluster-12.preview.emergentcf.cloud",
+        "*.vercel.app",
         "localhost:3000",
       ],
     },

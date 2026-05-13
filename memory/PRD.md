@@ -1,126 +1,112 @@
 # Portal DTSEN Bangkalan — PRD
 
-## Original Problem Statement
-"bantu aku menyelesaikan aplikasi ini"
-+ Handover doc (HANDOVER-Portal-DTSEN-Bangkalan.pdf)
-+ UAT plan (UAT-day9.md)
-+ Bootstrap zip (Day-1 bootstrap, ~128 files)
-+ GitHub repo: https://github.com/latsarxxixbkl-bit/portal-dtsen-bangkalan.git
-
-## Tujuan Aplikasi
-Digitalisasi alur permohonan & pelaporan pemanfaatan Data Tunggal Sosial Ekonomi Nasional (DTSEN) untuk Pemerintah Kabupaten Bangkalan.
+## Tujuan
+Digitalisasi alur permohonan & pelaporan pemanfaatan Data DTSEN untuk Pemkab Bangkalan.
 
 ## Tech Stack
-- Next.js 16 (App Router, React 19) — **production build** untuk Emergent preview (lebih stabil dari dev/Turbopack)
-- TypeScript + Tailwind CSS v4 + shadcn/ui
+- Next.js 16 (App Router, React 19) — production build
+- TypeScript + Tailwind v4 + shadcn/ui — **font Arial**
 - Supabase (Postgres + Auth + Storage) — project `ubolcndcnmseqlecjazx`
-- Prisma 7 (pg adapter)
+- Prisma 7 (pg adapter, no rust engine — Vercel-friendly)
 - Resend (email)
-- Vercel (target production hosting)
+- Vercel (target hosting + Cron)
 
-## User Personas
-| Peran | OPD | Hak Utama |
-|---|---|---|
-| PEMOHON | OPD pemohon | Submit permohonan + laporan |
-| VERIFIKATOR | Bapperida | Review tahap-1 + setujui laporan tahap-1 |
-| EWALI_DATA | Diskominfo | Review tahap-2 |
-| PENGELOLA_DTSEN | Dinsos | Approve final + upload Berkas DTSEN + setujui laporan tahap-2 |
-| ADMIN | (any) | Kelola users + OPD + monitoring |
-
-## What's Been Implemented (2026-05-13) — END-TO-END WORKING
+## What's Been Implemented (Final — 2026-05-13)
 
 ### Infrastructure ✅
-- Bootstrap Next.js 16 + Prisma 7 + Supabase + Tailwind v4 + shadcn (128 files, build clean)
-- Supabase project connected (`ubolcndcnmseqlecjazx.supabase.co`)
-- Resend API configured for email
-- Storage buckets created: `permohonan-dokumen`, `berkas-dtsen`, `laporan-pendukung`
-- Prisma schema synced ke Postgres
-- Seed 49 OPD Bangkalan **dengan kodeOpd** (DISDIK, DINKES, BAPPERIDA, dll)
-- 5 UAT accounts auto-confirmed (admin/pemohon/verif/ewali/dinsos)
+- Bootstrap Next.js 16 + Prisma 7 + Supabase + Tailwind v4 + shadcn (build clean, 22 routes)
+- Supabase connected + DB schema synced + 49 OPD seeded dengan kodeOpd
+- 4 Storage buckets created (`permohonan-dokumen`, `berkas-dtsen`, `laporan-pendukung`, `templat-surat`)
+- 5 UAT accounts auto-confirmed (password `Test12345!`)
+- vercel.json with cron schedule (daily 01:00 UTC = 08:00 WIB)
+- /api/health endpoint untuk uptime monitor
+- ESLint clean (0 errors)
 
-### Application ✅
-- Schema Prisma 12 model + enums lengkap
-- State machines Permohonan (4-stage workflow) + Laporan (dual review)
-- Server actions: submit permohonan, workflow transition, upload berkas, submit laporan, review laporan
-- Auth (Supabase email+password) + middleware RBAC
-- Module Admin (users + OPD CRUD)
-- Cron reminder endpoint `/api/cron/laporan-reminder` (Bearer auth verified)
-- Export CSV permohonan & laporan (UTF-8 BOM)
-- Notifikasi in-app + email template
-- Landing + login + register + reset password + dashboard shell + all role pages
+### Modules ✅
+- Schema Prisma 13 model + 7 enums (+TemplatSurat baru)
+- State machines: Permohonan 4-stage + Laporan dual review
+- Server actions: submit permohonan, workflow, upload berkas, submit/review laporan, **template CRUD**
+- Auth Supabase + middleware RBAC
+- Module Admin: kelola Users + OPD + **Template Surat (baru)**
+- **Template Surat**: admin upload (PDF/DOCX/DOC/ODT max 20MB), OPD download di form permohonan baru
+- Cron reminder dengan dual auth (Bearer `CRON_SECRET` ATAU `x-vercel-cron: 1`)
+- Export CSV (UTF-8 BOM)
+- Notifikasi in-app + email (Resend)
 
-### Verified Working (live test) ✅
-- `/` Landing → HTTP 200 ✓
-- `/login` → HTTP 200 ✓
-- `/daftar` → HTTP 200 ✓
-- `/lupa-password` → HTTP 200 ✓
-- `/dashboard` → 307 redirect ke /login saat unauth (RBAC) ✓
-- **Login admin successful** → redirect ke /dashboard, sidebar render lengkap ✓
-- Dashboard stats: 1 Permohonan, 5 Pengguna, 49 OPD, 1 Laporan ✓
-- Chart distribusi status render ✓
-- `/api/cron/laporan-reminder` dengan Bearer → `{ok:true, total:0}` ✓
-- `/api/cron/laporan-reminder` tanpa auth → **401** ✓ security
+### UX Improvements ✅
+- Form permohonan baru: tombol "Unduh Template" muncul di samping setiap field upload dokumen
+- Laporan list empty state: penjelasan jelas bahwa laporan auto-create 30 hari setelah Berkas DTSEN diserahkan + link ke status permohonan
+- Font **Arial** global (sebelumnya Geist)
+- All interactive elements ber-`data-testid`
 
-### Bug Fixes ✅
-- `seed.ts`: tambah `kodeOpd` untuk semua 49 OPD (UAT Test 2 nomor surat format `001/PORTAL-DTSEN/DISDIK/V/2026`)
-- `seed.ts`, `init-storage.ts`, `uat-setup.ts`, `promote-admin.ts`: dynamic import prisma/supabase setelah dotenv load (fix ESM hoisting bug)
-- `package.json`: `start` script jadi `next start` (production) bukan `next dev` (Turbopack OOM di Emergent preview)
-- `next.config.ts`: tambah `allowedDevOrigins` + `serverActions.allowedOrigins` untuk dual-domain Emergent (`preview.emergentagent.com` & `cluster-12.preview.emergentcf.cloud`) — fix CSRF block Server Actions
+### Verified Working (Live Test) ✅
+- `/` Landing → 200
+- `/login` → 200
+- `/daftar` → 200
+- `/api/health` → `{ok:true, app:"Portal DTSEN Bangkalan", ts:"..."}`
+- `/api/cron/laporan-reminder` (Bearer auth) → `{ok:true, total:0}` 
+- `/api/cron/laporan-reminder` (no auth) → 401 security
+- **Admin login → /dashboard render dengan stats + sidebar lengkap**
+- **/dashboard/admin/templat render dengan 4 cards** (Surat Permintaan, KAK, Pakta Integritas, NDA)
+- **Font Arial confirmed** via `getComputedStyle(body).fontFamily`
 
-## Test Accounts (/app/memory/test_credentials.md)
-Password universal: `Test12345!`
-- `latsar.xxix.bkl+admin@gmail.com` → ADMIN @ Bapperida
-- `latsar.xxix.bkl+pemohon@gmail.com` → PEMOHON @ Dinas Pendidikan
-- `latsar.xxix.bkl+verif@gmail.com` → VERIFIKATOR @ Bapperida
-- `latsar.xxix.bkl+ewali@gmail.com` → EWALI_DATA @ Diskominfo
-- `latsar.xxix.bkl+dinsos@gmail.com` → PENGELOLA_DTSEN @ Dinas Sosial
+## Bug Fixes & Architectural Decisions
 
-## Prioritized Backlog
+| Issue | Resolution |
+|---|---|
+| OPD nomor surat tanpa kodeOpd | Added kodeOpd untuk 49 OPD di seed.ts (DISDIK, DINKES, BAPPERIDA, dll) |
+| ESM hoisting: prisma init sebelum dotenv | Dynamic import prisma/supabase di scripts setelah loadEnv |
+| Next.js dev Turbopack OOM di Emergent | Switch ke `next start` (production build) |
+| Server Actions CSRF block (Emergent dual-domain) | `serverActions.allowedOrigins` di next.config.ts |
+| Templat surat butuh multi-format | Bucket `templat-surat` dengan PDF/DOCX/DOC/ODT mime |
+| Font Geist → Arial | Remove Geist imports, set `--font-sans: Arial` di globals.css |
 
-### P0 — Already DONE ✅
-- ~~Credential Supabase~~ ✅ user provided
-- ~~Run setup-all.sh~~ ✅ all 4 steps passed
-- ~~UAT accounts~~ ✅ 5 accounts seeded
-- ~~Login verified~~ ✅ admin login → dashboard works
+## Test Credentials
+`/app/memory/test_credentials.md` — 5 akun universal password `Test12345!`
 
-### P1 — UAT lengkap
-- [ ] Run UAT 10 test cases dari `/app/frontend/docs/UAT-day9.md`:
-  - Test 1: Daftar + Login Pemohon
-  - Test 2: Submit Permohonan (validation + nomor surat)
-  - Test 3-5: 4-stage workflow review
-  - Test 5: Upload Berkas + auto-create Laporan
-  - Test 6-7: Laporan submit + dual review
-  - Test 8: Cron reminder (✅ verified work)
-  - Test 9: Export CSV
-  - Test 10: RBAC negative test
+## Vercel Deployment Path
+1. Push ke GitHub (`https://github.com/latsarxxixbkl-bit/portal-dtsen-bangkalan.git`) — via fitur "Save to Github" di Emergent
+2. Vercel Dashboard → Import → set 6 env vars (lihat `.env.example`)
+3. Deploy — Next.js auto-detected
+4. Supabase Auth → URL Configuration → set Site URL = vercel app URL
+5. Vercel Cron auto-aktif dari `vercel.json`
 
-### P2 — Polish & Production
-- [ ] Logo Pemkab Bangkalan (saat ini gradient generic)
-- [ ] Templat surat resmi (Surat Permintaan, KAK, Pakta Integritas, NDA)
-- [ ] SSO Pemkab (saat ini email+password)
-- [ ] Custom domain `.go.id`
-- [ ] Deploy ke Vercel + Vercel Cron (daily 09:00 WIB)
+## Backlog
 
-## Tech Decisions Made
-- **Stack handover dipertahankan** (Next.js+Supabase+Prisma+Resend) — sukses run di Emergent dengan production build
-- **Production build** (`next start`), bukan dev mode — Turbopack dev mode hits OOM di Emergent preview
-- **Server Actions origin whitelist** — Emergent dual-domain butuh explicit `serverActions.allowedOrigins`
-- **Dynamic imports di scripts** — prevent ESM hoisting bug saat dotenv loaded after Prisma init
+### P1 — Operasional
+- [ ] Upload template surat asli (Surat Permintaan, KAK, Pakta Integritas, NDA) via admin UI
+- [ ] Run UAT 10 test cases dari docs/UAT-day9.md
+- [ ] Custom domain `.bangkalanab.go.id`
+- [ ] Verify domain di Resend untuk email FROM `noreply@bangkalanab.go.id`
 
-## Deployment Path
-- Dev/preview: Emergent `next start -p 3000` (supervisor managed)
-- Production: Push to GitHub via "Save to Github" → import ke Vercel
-- Cron: Vercel Cron daily 09:00 WIB → `/api/cron/laporan-reminder` (Bearer `CRON_SECRET`)
+### P2 — Polish
+- [ ] Logo Pemkab Bangkalan
+- [ ] SSO Pemkab integration
+- [ ] Public transparency dashboard (tanpa login) `/transparansi`
+- [ ] Mobile responsive audit
 
-## Files Modified
-- `/app/frontend/.env.local` — Supabase + Resend + DATABASE_URL + CRON_SECRET
-- `/app/frontend/next.config.ts` — allowedDevOrigins + serverActions allowedOrigins
-- `/app/frontend/package.json` — `start` = `next start`
-- `/app/frontend/prisma/seed.ts` — added kodeOpd, dynamic import
-- `/app/frontend/scripts/init-storage.ts` — dynamic import
-- `/app/frontend/scripts/uat-setup.ts` — dynamic import + type safety
-- `/app/frontend/scripts/promote-admin.ts` — dynamic import
-- `/app/frontend/scripts/setup-all.sh` — new all-in-one setup script
-- `/app/SETUP.md` — panduan setup detail
-- `/app/memory/PRD.md` (this file)
+## Files Modified This Session
+- `/app/frontend/.env.local` — credentials configured
+- `/app/frontend/.env.example` — production template
+- `/app/frontend/next.config.ts` — allowedDevOrigins + serverActions.allowedOrigins (Emergent + Vercel compat)
+- `/app/frontend/package.json` — `start` = `next start` (production)
+- `/app/frontend/vercel.json` — cron `0 1 * * *`
+- `/app/frontend/README.md` — quick start + Vercel deploy guide
+- `/app/frontend/src/app/layout.tsx` — remove Geist, no font imports
+- `/app/frontend/src/app/globals.css` — `--font-sans: Arial`
+- `/app/frontend/src/app/api/health/route.ts` — new health check
+- `/app/frontend/src/app/api/file/route.ts` — added type=templat handler
+- `/app/frontend/src/app/dashboard/admin/templat/` — new page + dialog + delete (3 files)
+- `/app/frontend/src/app/dashboard/laporan/page.tsx` — improved empty state
+- `/app/frontend/src/app/dashboard/permohonan/baru/form.tsx` — download template buttons
+- `/app/frontend/src/app/dashboard/permohonan/baru/page.tsx` — pass templatMap
+- `/app/frontend/src/components/dashboard/nav-config.ts` — Template Surat menu (ADMIN)
+- `/app/frontend/src/lib/storage.ts` — added TEMPLAT_SURAT bucket + multi-mime support
+- `/app/frontend/src/lib/templat/{actions,queries}.ts` — new module
+- `/app/frontend/prisma/schema.prisma` — TemplatSurat model + User.templatUploaded relation
+- `/app/frontend/prisma/seed.ts` — kodeOpd untuk 49 OPD, dynamic import
+- `/app/frontend/scripts/{init-storage,uat-setup,promote-admin}.ts` — dynamic import fix
+- `/app/frontend/scripts/setup-all.sh` — new all-in-one setup
+- `/app/SETUP.md` — Emergent setup guide
 - `/app/memory/test_credentials.md` — UAT accounts
+- `/app/memory/PRD.md` (this file)
