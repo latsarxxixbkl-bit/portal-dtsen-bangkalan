@@ -1,14 +1,11 @@
 /**
  * Seed master data for Portal DTSEN Bangkalan.
- * Daftar OPD diambil dari rilis publik Pemkab Bangkalan & instansi internal pengelola DTSEN.
  *
  * Jalankan: `npx tsx prisma/seed.ts`
  */
 import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
-
-import { prisma } from "../src/lib/prisma";
 
 type OpdSeed = {
   nama: string;
@@ -93,6 +90,9 @@ const OPD_LIST: OpdSeed[] = [
 ];
 
 async function main() {
+  // Dynamic import AFTER dotenv load, supaya DATABASE_URL terbaca saat Prisma init.
+  const { prisma } = await import("../src/lib/prisma");
+
   console.log("→ Seeding OPD …");
   let created = 0;
   let updated = 0;
@@ -100,7 +100,6 @@ async function main() {
   for (const o of OPD_LIST) {
     const exists = await prisma.opd.findFirst({ where: { nama: o.nama } });
     if (exists) {
-      // Update kodeOpd jika kosong/berbeda — supaya nomor surat UAT match.
       if (exists.kodeOpd !== o.kodeOpd) {
         await prisma.opd.update({ where: { id: exists.id }, data: { kodeOpd: o.kodeOpd } });
         updated++;
@@ -113,13 +112,10 @@ async function main() {
     created++;
   }
   console.log(`✓ Selesai: ${created} OPD dibuat, ${updated} kodeOpd di-update, ${skipped} sudah ada.`);
+  await prisma.$disconnect();
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

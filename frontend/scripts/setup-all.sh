@@ -32,7 +32,7 @@ if grep -qE "(REPLACE_WITH|REPLACE_PASSWORD|re_placeholder)" .env.local; then
 fi
 
 echo "→ Step 1/4: Prisma db push (sync schema ke Supabase)…"
-npx prisma db push --skip-generate
+npx prisma db push
 
 echo ""
 echo "→ Step 2/4: Generate Prisma Client…"

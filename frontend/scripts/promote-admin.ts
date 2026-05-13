@@ -1,9 +1,8 @@
 // Promosikan user (by email) menjadi ADMIN.
 // Run: npx tsx scripts/promote-admin.ts <email>
-//
-// Berguna untuk bootstrap admin pertama setelah deploy (akun yang sudah daftar
-// akan diubah role-nya menjadi ADMIN supaya bisa mengelola pengguna lain).
-import { prisma } from "../src/lib/prisma";
+import { config as loadEnv } from "dotenv";
+loadEnv({ path: ".env.local" });
+loadEnv({ path: ".env" });
 
 async function main() {
   const email = process.argv[2];
@@ -11,6 +10,7 @@ async function main() {
     console.error("Usage: npx tsx scripts/promote-admin.ts <email>");
     process.exit(1);
   }
+  const { prisma } = await import("../src/lib/prisma");
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) {
     console.error(`User dengan email ${email} tidak ditemukan.`);
@@ -21,11 +21,10 @@ async function main() {
     data: { role: "ADMIN", isActive: true },
   });
   console.log(`✓ ${updated.nama} (${updated.email}) sekarang ADMIN.`);
+  await prisma.$disconnect();
 }
 
-main()
-  .catch((err) => {
-    console.error(err);
-    process.exit(99);
-  })
-  .finally(() => prisma.$disconnect());
+main().catch((err) => {
+  console.error(err);
+  process.exit(99);
+});

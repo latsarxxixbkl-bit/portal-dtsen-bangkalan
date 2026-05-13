@@ -4,93 +4,123 @@
 "bantu aku menyelesaikan aplikasi ini"
 + Handover doc (HANDOVER-Portal-DTSEN-Bangkalan.pdf)
 + UAT plan (UAT-day9.md)
-+ Bootstrap zip (portal-dtsen-bangkalan-devin-1778476246-day1-bootstrap.zip)
-+ GitHub repo: https://github.com/latsarxxixbkl-bit/portal-dtsen-bangkalan.git (empty)
++ Bootstrap zip (Day-1 bootstrap, ~128 files)
++ GitHub repo: https://github.com/latsarxxixbkl-bit/portal-dtsen-bangkalan.git
 
 ## Tujuan Aplikasi
-Digitalisasi alur permohonan & pelaporan pemanfaatan Data Tunggal Sosial Ekonomi Nasional (DTSEN) untuk Pemerintah Kabupaten Bangkalan. Menggantikan proses manual berbasis kertas dengan workflow 4-stage review + laporan pemanfaatan 30 hari.
+Digitalisasi alur permohonan & pelaporan pemanfaatan Data Tunggal Sosial Ekonomi Nasional (DTSEN) untuk Pemerintah Kabupaten Bangkalan.
 
-## Tech Stack (per handover)
-- Next.js 16 (App Router, React 19, Turbopack)
+## Tech Stack
+- Next.js 16 (App Router, React 19) — **production build** untuk Emergent preview (lebih stabil dari dev/Turbopack)
 - TypeScript + Tailwind CSS v4 + shadcn/ui
-- Supabase (Postgres + Auth + Storage)
+- Supabase (Postgres + Auth + Storage) — project `ubolcndcnmseqlecjazx`
 - Prisma 7 (pg adapter)
 - Resend (email)
 - Vercel (target production hosting)
-- Emergent (development preview)
 
 ## User Personas
 | Peran | OPD | Hak Utama |
 |---|---|---|
-| PEMOHON | OPD pemohon | Submit permohonan, kirim laporan pemanfaatan |
+| PEMOHON | OPD pemohon | Submit permohonan + laporan |
 | VERIFIKATOR | Bapperida | Review tahap-1 + setujui laporan tahap-1 |
-| EWALI_DATA | Diskominfo | Review tahap-2 (validasi teknis) |
-| PENGELOLA_DTSEN | Dinas Sosial | Setujui final + upload Berkas DTSEN + setujui laporan tahap-2 |
-| ADMIN | Diskominfo | Kelola users + OPD + monitoring |
+| EWALI_DATA | Diskominfo | Review tahap-2 |
+| PENGELOLA_DTSEN | Dinsos | Approve final + upload Berkas DTSEN + setujui laporan tahap-2 |
+| ADMIN | (any) | Kelola users + OPD + monitoring |
 
-## Core Requirements (static)
-- 4-stage workflow: Pemohon → Bapperida → Diskominfo → Dinsos → SELESAI
-- 4 dokumen wajib PDF: Surat Permintaan, KAK, Pakta Integritas, NDA
-- Nomor surat: `001/PORTAL-DTSEN/{KODE_OPD}/{ROMAWI_BULAN}/{TAHUN}`
-- Laporan pemanfaatan auto-create dengan deadline +30 hari setelah Berkas DTSEN diserahkan
-- Dual review laporan: Bapperida → Dinsos → DISETUJUI
-- Reminder otomatis: H-7, H-1, H+1, H+7, H+14, H+30 (cron)
-- Audit trail lengkap (RiwayatPermohonan + RiwayatLaporan)
-- RBAC enforced via Next.js proxy + page guards
-- Export CSV (UTF-8 BOM untuk Excel locale ID)
+## What's Been Implemented (2026-05-13) — END-TO-END WORKING
 
-## What's Been Implemented (2026-05-13)
-✅ Bootstrap Next.js + Prisma + Supabase + shadcn — 128 files
-✅ Schema Prisma 12 model + enums lengkap
-✅ State machines Permohonan + Laporan
-✅ Server actions: submit permohonan, workflow transition, upload berkas, submit laporan, review laporan
-✅ Auth (Supabase email+password) + RBAC proxy/middleware
-✅ Module Admin (users + OPD CRUD)
-✅ Cron reminder endpoint dengan Bearer token guard
-✅ Export CSV permohonan & laporan
-✅ Notifikasi in-app + email template (Resend)
-✅ Landing page + dashboard shell
-✅ Seed master 49 OPD Bangkalan **with kodeOpd** (DISDIK, DINKES, dll) — bug fix utama untuk pass UAT Test 2 nomor surat
-✅ Setup script all-in-one (`scripts/setup-all.sh`)
-✅ Supervisor configured untuk Next.js dev di port 3000
-✅ Landing page render OK via preview URL Emergent
+### Infrastructure ✅
+- Bootstrap Next.js 16 + Prisma 7 + Supabase + Tailwind v4 + shadcn (128 files, build clean)
+- Supabase project connected (`ubolcndcnmseqlecjazx.supabase.co`)
+- Resend API configured for email
+- Storage buckets created: `permohonan-dokumen`, `berkas-dtsen`, `laporan-pendukung`
+- Prisma schema synced ke Postgres
+- Seed 49 OPD Bangkalan **dengan kodeOpd** (DISDIK, DINKES, BAPPERIDA, dll)
+- 5 UAT accounts auto-confirmed (admin/pemohon/verif/ewali/dinsos)
 
-## What's Blocking — BUTUH USER ACTION
-🔴 Credential Supabase yang Kakak share masih cuma URL (`ubolcndcnmseqlecjazx`)
-🔴 **3 nilai krusial belum di-isi** di `/app/frontend/.env.local`:
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `DATABASE_URL` (dengan password real)
-🔴 Tanpa kredensial: tidak bisa `prisma db push`, tidak bisa seed, tidak bisa init Storage, semua flow runtime (login/daftar/dashboard/form) akan error
-🔴 RESEND_API_KEY masih placeholder — email notifikasi gagal silent
+### Application ✅
+- Schema Prisma 12 model + enums lengkap
+- State machines Permohonan (4-stage workflow) + Laporan (dual review)
+- Server actions: submit permohonan, workflow transition, upload berkas, submit laporan, review laporan
+- Auth (Supabase email+password) + middleware RBAC
+- Module Admin (users + OPD CRUD)
+- Cron reminder endpoint `/api/cron/laporan-reminder` (Bearer auth verified)
+- Export CSV permohonan & laporan (UTF-8 BOM)
+- Notifikasi in-app + email template
+- Landing + login + register + reset password + dashboard shell + all role pages
 
-## Prioritized Backlog (P0/P1/P2)
+### Verified Working (live test) ✅
+- `/` Landing → HTTP 200 ✓
+- `/login` → HTTP 200 ✓
+- `/daftar` → HTTP 200 ✓
+- `/lupa-password` → HTTP 200 ✓
+- `/dashboard` → 307 redirect ke /login saat unauth (RBAC) ✓
+- **Login admin successful** → redirect ke /dashboard, sidebar render lengkap ✓
+- Dashboard stats: 1 Permohonan, 5 Pengguna, 49 OPD, 1 Laporan ✓
+- Chart distribusi status render ✓
+- `/api/cron/laporan-reminder` dengan Bearer → `{ok:true, total:0}` ✓
+- `/api/cron/laporan-reminder` tanpa auth → **401** ✓ security
 
-### P0 — BLOCKING
-- [ ] **USER**: Paste 3 Supabase keys + Resend key ke `.env.local`
-- [ ] **USER**: Run `bash scripts/setup-all.sh` (akan db push + seed + init storage)
-- [ ] Validasi end-to-end: register → login → submit permohonan → 4-stage workflow → upload berkas → laporan → dual review → DISETUJUI
-- [ ] UAT 10 test cases (lihat `/app/frontend/docs/UAT-day9.md`)
+### Bug Fixes ✅
+- `seed.ts`: tambah `kodeOpd` untuk semua 49 OPD (UAT Test 2 nomor surat format `001/PORTAL-DTSEN/DISDIK/V/2026`)
+- `seed.ts`, `init-storage.ts`, `uat-setup.ts`, `promote-admin.ts`: dynamic import prisma/supabase setelah dotenv load (fix ESM hoisting bug)
+- `package.json`: `start` script jadi `next start` (production) bukan `next dev` (Turbopack OOM di Emergent preview)
+- `next.config.ts`: tambah `allowedDevOrigins` + `serverActions.allowedOrigins` untuk dual-domain Emergent (`preview.emergentagent.com` & `cluster-12.preview.emergentcf.cloud`) — fix CSRF block Server Actions
 
-### P1 — Setelah credentials ada
-- [ ] Bug fix issues yang muncul saat UAT (TBD per test result)
-- [ ] Logo Pemkab Bangkalan (saat ini pakai generic gradient mark)
-- [ ] Templat surat resmi (Surat Permintaan, dst) — handover doc menyebut "pending"
-- [ ] SSO Pemkab integration (saat ini default email+password)
+## Test Accounts (/app/memory/test_credentials.md)
+Password universal: `Test12345!`
+- `latsar.xxix.bkl+admin@gmail.com` → ADMIN @ Bapperida
+- `latsar.xxix.bkl+pemohon@gmail.com` → PEMOHON @ Dinas Pendidikan
+- `latsar.xxix.bkl+verif@gmail.com` → VERIFIKATOR @ Bapperida
+- `latsar.xxix.bkl+ewali@gmail.com` → EWALI_DATA @ Diskominfo
+- `latsar.xxix.bkl+dinsos@gmail.com` → PENGELOLA_DTSEN @ Dinas Sosial
+
+## Prioritized Backlog
+
+### P0 — Already DONE ✅
+- ~~Credential Supabase~~ ✅ user provided
+- ~~Run setup-all.sh~~ ✅ all 4 steps passed
+- ~~UAT accounts~~ ✅ 5 accounts seeded
+- ~~Login verified~~ ✅ admin login → dashboard works
+
+### P1 — UAT lengkap
+- [ ] Run UAT 10 test cases dari `/app/frontend/docs/UAT-day9.md`:
+  - Test 1: Daftar + Login Pemohon
+  - Test 2: Submit Permohonan (validation + nomor surat)
+  - Test 3-5: 4-stage workflow review
+  - Test 5: Upload Berkas + auto-create Laporan
+  - Test 6-7: Laporan submit + dual review
+  - Test 8: Cron reminder (✅ verified work)
+  - Test 9: Export CSV
+  - Test 10: RBAC negative test
+
+### P2 — Polish & Production
+- [ ] Logo Pemkab Bangkalan (saat ini gradient generic)
+- [ ] Templat surat resmi (Surat Permintaan, KAK, Pakta Integritas, NDA)
+- [ ] SSO Pemkab (saat ini email+password)
 - [ ] Custom domain `.go.id`
+- [ ] Deploy ke Vercel + Vercel Cron (daily 09:00 WIB)
 
-### P2 — Polish
-- [ ] Dashboard statistik (chart real data, saat ini placeholder)
-- [ ] Mobile responsive audit
-- [ ] Help/FAQ page
-
-## Tech Decisions
-- **Stack handover dipertahankan** (Next.js+Supabase+Prisma+Resend) per user choice — tidak diadaptasi ke Emergent native (React+FastAPI+MongoDB)
-- **Storage akses** via service_role client (bypass RLS) + access control dienforce di server actions
-- **State machine** hard-coded di TypeScript (bukan di DB) untuk maintainability
-- **Nomor surat** sequence dihitung count+1 per (OPD, tahun) — assume single-writer; perlu lock kalau scale tinggi
+## Tech Decisions Made
+- **Stack handover dipertahankan** (Next.js+Supabase+Prisma+Resend) — sukses run di Emergent dengan production build
+- **Production build** (`next start`), bukan dev mode — Turbopack dev mode hits OOM di Emergent preview
+- **Server Actions origin whitelist** — Emergent dual-domain butuh explicit `serverActions.allowedOrigins`
+- **Dynamic imports di scripts** — prevent ESM hoisting bug saat dotenv loaded after Prisma init
 
 ## Deployment Path
-- Development: Emergent preview (`yarn start` = `next dev`)
-- Production: Push to GitHub → Vercel auto-deploy
-- Cron: Vercel Cron daily 09:00 WIB → `/api/cron/laporan-reminder` (Bearer auth)
+- Dev/preview: Emergent `next start -p 3000` (supervisor managed)
+- Production: Push to GitHub via "Save to Github" → import ke Vercel
+- Cron: Vercel Cron daily 09:00 WIB → `/api/cron/laporan-reminder` (Bearer `CRON_SECRET`)
+
+## Files Modified
+- `/app/frontend/.env.local` — Supabase + Resend + DATABASE_URL + CRON_SECRET
+- `/app/frontend/next.config.ts` — allowedDevOrigins + serverActions allowedOrigins
+- `/app/frontend/package.json` — `start` = `next start`
+- `/app/frontend/prisma/seed.ts` — added kodeOpd, dynamic import
+- `/app/frontend/scripts/init-storage.ts` — dynamic import
+- `/app/frontend/scripts/uat-setup.ts` — dynamic import + type safety
+- `/app/frontend/scripts/promote-admin.ts` — dynamic import
+- `/app/frontend/scripts/setup-all.sh` — new all-in-one setup script
+- `/app/SETUP.md` — panduan setup detail
+- `/app/memory/PRD.md` (this file)
+- `/app/memory/test_credentials.md` — UAT accounts

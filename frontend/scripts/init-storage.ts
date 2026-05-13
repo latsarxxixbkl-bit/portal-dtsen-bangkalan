@@ -7,9 +7,10 @@ import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
 loadEnv({ path: ".env" });
 
-import { ensureBuckets, BUCKETS } from "../src/lib/storage";
-
 async function main() {
+  // Dynamic import AFTER dotenv load (env vars dibaca saat Supabase client init).
+  const { ensureBuckets, BUCKETS } = await import("../src/lib/storage");
+
   console.log("→ Memastikan bucket Supabase Storage tersedia…");
   await ensureBuckets();
   console.log("✓ Bucket privat siap:", Object.values(BUCKETS).join(", "));
