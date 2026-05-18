@@ -39,7 +39,7 @@ export default async function LaporanListPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Laporan Pemanfaatan</h1>
           <p className="text-sm text-muted-foreground">
             {user.role === "PEMOHON"
-              ? "Laporan yang harus Kak kirim setelah menerima data DTSEN."
+              ? "Laporan yang harus Anda kirim setelah menerima data DTSEN."
               : "Laporan pemanfaatan data DTSEN dari seluruh OPD."}
           </p>
         </div>

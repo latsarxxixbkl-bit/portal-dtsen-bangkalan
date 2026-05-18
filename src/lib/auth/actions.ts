@@ -133,7 +133,7 @@ export async function daftarAction(
     message:
       signUpData.session
         ? "Pendaftaran berhasil! Mengarahkan ke dashboard…"
-        : "Pendaftaran berhasil. Cek email Kak untuk verifikasi sebelum masuk.",
+        : "Pendaftaran berhasil. Cek email Anda untuk verifikasi sebelum masuk.",
   };
 }
 
@@ -170,7 +170,7 @@ export async function resetPasswordAction(
 function errorMessage(msg: string): string {
   const dict: Record<string, string> = {
     "Invalid login credentials": "Email atau password salah.",
-    "Email not confirmed": "Email belum dikonfirmasi. Cek inbox Kak.",
+    "Email not confirmed": "Email belum dikonfirmasi. Cek inbox Anda.",
     "User already registered": "Email sudah terdaftar.",
   };
   return dict[msg] ?? msg;

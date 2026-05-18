@@ -15,7 +15,7 @@ export default function LupaPasswordPage() {
       <CardHeader className="space-y-1.5 text-center">
         <CardTitle className="text-2xl">Lupa Password</CardTitle>
         <CardDescription>
-          Masukkan email akun Kak — kami kirim link reset ke email tersebut.
+          Masukkan email akun Anda — kami kirim link reset ke email tersebut.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

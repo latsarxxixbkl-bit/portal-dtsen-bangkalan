@@ -100,6 +100,19 @@ export async function removeFile(bucket: BucketName, path: string): Promise<void
   await admin.storage.from(bucket).remove([path]);
 }
 
+/** Download a stored object as a Buffer. Used for backup/bundling. */
+export async function downloadFileBuffer(
+  bucket: BucketName,
+  path: string,
+): Promise<Buffer> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage.from(bucket).download(path);
+  if (error || !data) {
+    throw error ?? new Error(`Tidak bisa download ${bucket}/${path}.`);
+  }
+  return Buffer.from(await data.arrayBuffer());
+}
+
 function sanitize(name: string): string {
   return name
     .normalize("NFKD")

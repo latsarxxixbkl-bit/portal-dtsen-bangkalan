@@ -1,4 +1,5 @@
 import {
+  Archive,
   Bell,
   FileCheck2,
   FilePlus2,
@@ -56,6 +57,12 @@ export function navForRole(
         ],
       },
       {
+        title: "Dokumen",
+        items: [
+          { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
+        ],
+      },
+      {
         title: "Akun",
         items: COMMON_BOTTOM,
       },
@@ -77,6 +84,12 @@ export function navForRole(
           { href: "/dashboard/laporan/review-bapperida", label: "Review Laporan", icon: FileText },
         ],
       },
+      {
+        title: "Dokumen",
+        items: [
+          { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
+        ],
+      },
       { title: "Akun", items: COMMON_BOTTOM },
     ];
   }
@@ -88,6 +101,12 @@ export function navForRole(
         title: "Permohonan",
         items: [
           { href: "/dashboard/permohonan", label: "Antrian E-Wali", icon: FileCheck2 },
+        ],
+      },
+      {
+        title: "Dokumen",
+        items: [
+          { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
         ],
       },
       { title: "Akun", items: COMMON_BOTTOM },
@@ -109,6 +128,12 @@ export function navForRole(
           { href: "/dashboard/laporan/review-dinsos", label: "Review Laporan", icon: FileText },
         ],
       },
+      {
+        title: "Dokumen",
+        items: [
+          { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
+        ],
+      },
       { title: "Akun", items: COMMON_BOTTOM },
     ];
   }
@@ -128,6 +153,13 @@ export function navForRole(
       items: [
         { href: "/dashboard/permohonan", label: "Semua Permohonan", icon: Files },
         { href: "/dashboard/laporan", label: "Semua Laporan", icon: FileText },
+      ],
+    },
+    {
+      title: "Dokumen & Sistem",
+      items: [
+        { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
+        { href: "/dashboard/admin/backup", label: "Backup Data", icon: Archive },
       ],
     },
     { title: "Akun", items: COMMON_BOTTOM },

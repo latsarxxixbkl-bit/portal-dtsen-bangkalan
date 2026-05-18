@@ -145,25 +145,31 @@ export default async function DashboardHome() {
 
   return (
     <div className="space-y-8">
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Selamat datang, Kak {namaDepan}
+      <section className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-primary/95 via-primary to-primary/80 px-6 py-8 text-primary-foreground shadow-premium-lg sm:px-8 sm:py-10">
+        <div className="bg-grid absolute inset-0 opacity-20" aria-hidden />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-white/15 px-3 py-1 text-[11px] font-medium uppercase tracking-wide ring-1 ring-white/25 backdrop-blur">
+                Portal DTSEN Bangkalan
+              </span>
+              <RoleBadge role={user.role} />
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+              Selamat datang, {namaDepan}
             </h1>
-            <RoleBadge role={user.role} />
+            <p className="mt-2 max-w-xl text-sm text-primary-foreground/85">
+              {user.opdNama ? `${user.opdNama} · ` : ""}Ringkasan aktivitas portal hari ini.
+            </p>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {user.opdNama ? `${user.opdNama} · ` : ""}Ringkasan aktivitas portal hari ini.
-          </p>
+          {user.role === "PEMOHON" && (
+            <Button asChild variant="secondary" className="shadow-md">
+              <Link href="/dashboard/permohonan/baru">
+                <FilePlus2 className="me-2 size-4" /> Permohonan Baru
+              </Link>
+            </Button>
+          )}
         </div>
-        {user.role === "PEMOHON" && (
-          <Button asChild>
-            <Link href="/dashboard/permohonan/baru">
-              <FilePlus2 className="me-2 size-4" /> Permohonan Baru
-            </Link>
-          </Button>
-        )}
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -263,7 +269,7 @@ export default async function DashboardHome() {
             <div>
               <CardTitle className="text-base">Permohonan Terbaru</CardTitle>
               <CardDescription>
-                {user.role === "PEMOHON" ? "Permohonan yang Kak ajukan." : "Aktivitas terakhir di sistem."}
+                {user.role === "PEMOHON" ? "Permohonan yang Anda ajukan." : "Aktivitas terakhir di sistem."}
               </CardDescription>
             </div>
             <Button asChild size="sm" variant="ghost">
@@ -308,7 +314,7 @@ export default async function DashboardHome() {
               <CardTitle className="text-base">Pelaporan Terdekat</CardTitle>
               <CardDescription>
                 {user.role === "PEMOHON"
-                  ? "Laporan yang harus Kak kirim."
+                  ? "Laporan yang harus Anda kirim."
                   : "Laporan menunggu review."}
               </CardDescription>
             </div>

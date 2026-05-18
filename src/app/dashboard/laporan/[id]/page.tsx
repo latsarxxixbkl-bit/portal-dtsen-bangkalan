@@ -206,7 +206,7 @@ export default async function LaporanDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Aksi Review</CardTitle>
-                <CardDescription>Berdasarkan peran Kak.</CardDescription>
+                <CardDescription>Berdasarkan peran Anda.</CardDescription>
               </CardHeader>
               <CardContent>
                 <ReviewLaporanActions laporanId={laporan.id} actions={reviewActions} />

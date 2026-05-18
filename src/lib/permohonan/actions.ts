@@ -46,7 +46,7 @@ export async function submitPermohonan(
     return { ok: false, error: "Hanya Pemohon yang bisa mengajukan permohonan." };
   }
   if (!user.opdId) {
-    return { ok: false, error: "Akun Kak belum terhubung ke OPD. Hubungi admin." };
+    return { ok: false, error: "Akun Anda belum terhubung ke OPD. Hubungi admin." };
   }
 
   const parsed = PermohonanSchema.safeParse({

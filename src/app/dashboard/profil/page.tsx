@@ -18,7 +18,7 @@ export default async function ProfilPage() {
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Profil</h1>
         <p className="text-sm text-muted-foreground">
-          Perbarui informasi pribadi dan kontak Kak.
+          Perbarui informasi pribadi dan kontak Anda.
         </p>
       </div>
 
