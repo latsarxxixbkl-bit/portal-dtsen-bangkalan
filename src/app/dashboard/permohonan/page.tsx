@@ -42,8 +42,8 @@ export default async function PermohonanListPage() {
           <h1 className="text-2xl font-semibold tracking-tight">Daftar Permohonan</h1>
           <p className="text-sm text-muted-foreground">
             {user.role === "PEMOHON"
-              ? "Permohonan yang Kak ajukan."
-              : "Permohonan yang relevan untuk peran Kak."}
+              ? "Permohonan yang Anda ajukan."
+              : "Permohonan yang relevan untuk peran Anda."}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -75,7 +75,7 @@ export default async function PermohonanListPage() {
               <div className="text-sm text-muted-foreground">
                 {user.role === "PEMOHON"
                   ? "Ajukan permohonan pertama dengan klik tombol di atas."
-                  : "Tidak ada permohonan dalam antrian peran Kak saat ini."}
+                  : "Tidak ada permohonan dalam antrian peran Anda saat ini."}
               </div>
             </div>
           </CardContent>

@@ -143,7 +143,7 @@ export function DaftarForm({ opdList }: { opdList: OpdOption[] }) {
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
-        Dengan mendaftar, Kak menyetujui ketentuan penggunaan Portal DTSEN Bangkalan.
+        Dengan mendaftar, Anda menyetujui ketentuan penggunaan Portal DTSEN Bangkalan.
         Sudah punya akun?{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
           Masuk

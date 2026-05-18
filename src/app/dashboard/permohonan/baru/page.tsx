@@ -36,7 +36,7 @@ export default async function PermohonanBaruPage() {
           <AlertTriangle className="size-4" />
           <AlertTitle>OPD belum ditetapkan</AlertTitle>
           <AlertDescription>
-            Akun Kak belum terhubung ke perangkat daerah. Hubungi admin untuk menetapkan OPD sebelum mengajukan permohonan.
+            Akun Anda belum terhubung ke perangkat daerah. Hubungi admin untuk menetapkan OPD sebelum mengajukan permohonan.
           </AlertDescription>
         </Alert>
       </div>

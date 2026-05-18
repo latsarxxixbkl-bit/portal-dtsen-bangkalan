@@ -169,7 +169,7 @@ export default function LandingPage() {
                 ))}
               </div>
               <div className="mt-8 text-sm text-muted-foreground">
-                Pratinjau dashboard akan menampilkan ringkasan kinerja persetujuan & pelaporan setelah Kak masuk.
+                Pratinjau dashboard akan menampilkan ringkasan kinerja persetujuan & pelaporan setelah Anda masuk.
               </div>
             </div>
           </div>

@@ -75,7 +75,7 @@ export default async function PermohonanDetailPage({
         <Alert>
           <AlertTitle>Permohonan terkirim</AlertTitle>
           <AlertDescription>
-            Permohonan Kak sudah masuk antrian Verifikator Bapperida. Pantau statusnya di halaman ini.
+            Permohonan Anda sudah masuk antrian Verifikator Bapperida. Pantau statusnya di halaman ini.
           </AlertDescription>
         </Alert>
       )}
@@ -230,7 +230,7 @@ export default async function PermohonanDetailPage({
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Aksi Tersedia</CardTitle>
-                <CardDescription>Berdasarkan peran Kak & status saat ini.</CardDescription>
+                <CardDescription>Berdasarkan peran Anda & status saat ini.</CardDescription>
               </CardHeader>
               <CardContent>
                 <WorkflowActions permohonanId={permohonan.id} actions={actions} />

@@ -21,7 +21,7 @@ export default async function DaftarPage() {
       <CardHeader className="space-y-1.5 text-center">
         <CardTitle className="text-2xl">Daftar Akun Perangkat Daerah</CardTitle>
         <CardDescription>
-          Daftarkan diri Kak sebagai Pemohon. Akun akan terhubung otomatis dengan OPD yang dipilih.
+          Daftarkan diri Anda sebagai Pemohon. Akun akan terhubung otomatis dengan OPD yang dipilih.
         </CardDescription>
       </CardHeader>
       <CardContent>
