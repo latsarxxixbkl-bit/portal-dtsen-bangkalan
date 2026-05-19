@@ -124,7 +124,12 @@ export async function generateRingkasanPdf(
     y = PAGE_HEIGHT - MARGIN_TOP;
   };
 
-  const wrap = (text: string, font: typeof fontRegular, size: number): string[] => {
+  const wrapAt = (
+    text: string,
+    font: typeof fontRegular,
+    size: number,
+    maxWidth: number,
+  ): string[] => {
     const out: string[] = [];
     const paras = text.split(/\r?\n/);
     for (const para of paras) {
@@ -132,7 +137,7 @@ export async function generateRingkasanPdf(
       let line = "";
       for (const w of words) {
         const cand = line ? `${line} ${w}` : w;
-        if (font.widthOfTextAtSize(cand, size) > contentWidth && line) {
+        if (font.widthOfTextAtSize(cand, size) > maxWidth && line) {
           out.push(line);
           line = w;
         } else {
@@ -143,6 +148,8 @@ export async function generateRingkasanPdf(
     }
     return out;
   };
+  const wrap = (text: string, font: typeof fontRegular, size: number): string[] =>
+    wrapAt(text, font, size, contentWidth);
 
   const drawText = (
     text: string,
@@ -165,6 +172,7 @@ export async function generateRingkasanPdf(
   const drawKV = (label: string, value: string) => {
     if (y < MARGIN_BOTTOM + LINE_HEIGHT * 2) newPage();
     const labelWidth = 150;
+    const valueMaxWidth = contentWidth - labelWidth;
     page.drawText(label, {
       x: MARGIN_X,
       y,
@@ -172,7 +180,14 @@ export async function generateRingkasanPdf(
       font: fontBold,
       color: rgb(0.27, 0.31, 0.38),
     });
-    const lines = wrap(value || "—", fontRegular, SIZE_BODY);
+    // Wrap value text within the narrower value column (not full contentWidth)
+    // agar pdf-lib tidak meng-compress huruf untuk muat ke maxWidth.
+    const lines = wrapAt(
+      value || "—",
+      fontRegular,
+      SIZE_BODY,
+      valueMaxWidth,
+    );
     let first = true;
     for (const line of lines) {
       if (y < MARGIN_BOTTOM + LINE_HEIGHT) newPage();
@@ -182,7 +197,6 @@ export async function generateRingkasanPdf(
         size: SIZE_BODY,
         font: fontRegular,
         color: rgb(0.12, 0.16, 0.21),
-        maxWidth: contentWidth - labelWidth,
       });
       y -= LINE_HEIGHT;
       first = false;
