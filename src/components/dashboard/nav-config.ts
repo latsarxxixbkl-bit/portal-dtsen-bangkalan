@@ -158,7 +158,11 @@ export function navForRole(
     {
       title: "Dokumen & Sistem",
       items: [
-        { href: "/dashboard/template-surat", label: "Template Surat", icon: FileText },
+        {
+          href: "/dashboard/admin/template-surat",
+          label: "Template Surat",
+          icon: FileText,
+        },
         { href: "/dashboard/admin/backup", label: "Backup Data", icon: Archive },
       ],
     },

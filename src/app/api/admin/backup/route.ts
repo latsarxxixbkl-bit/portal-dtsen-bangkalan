@@ -61,17 +61,45 @@ export async function GET() {
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      // Guard: ReadableStreamDefaultController error/close hanya boleh dipanggil sekali.
+      // Tanpa flag, kombinasi `archive.on('error')` + IIFE catch / cancel() bisa
+      // memanggil controller.error() dua kali → unhandled exception.
+      let streamDone = false;
+      const safeClose = () => {
+        if (streamDone) return;
+        streamDone = true;
+        try {
+          controller.close();
+        } catch {
+          // ignore — controller mungkin sudah ditutup pihak lain (race)
+        }
+      };
+      const safeError = (err: unknown) => {
+        if (streamDone) return;
+        streamDone = true;
+        try {
+          controller.error(err);
+        } catch {
+          // ignore
+        }
+      };
+
       archive.on("data", (chunk: Buffer) => {
-        controller.enqueue(new Uint8Array(chunk));
+        if (streamDone) return;
+        try {
+          controller.enqueue(new Uint8Array(chunk));
+        } catch (err) {
+          safeError(err);
+        }
       });
       archive.on("end", () => {
-        controller.close();
+        safeClose();
       });
       archive.on("warning", (err: Error) => {
         console.warn("[backup] archive warning:", err);
       });
       archive.on("error", (err: Error) => {
-        controller.error(err);
+        safeError(err);
       });
 
       // Append top-level README dulu — non-blocking.
@@ -214,12 +242,18 @@ export async function GET() {
 
           await archive.finalize();
         } catch (err) {
-          controller.error(err);
+          safeError(err);
         }
       })();
     },
     cancel() {
-      archive.abort();
+      // Client batal → abort archiver. Event 'error' archiver yang muncul setelah
+      // ini akan ter-noop berkat streamDone flag di safeError.
+      try {
+        archive.abort();
+      } catch {
+        // ignore
+      }
     },
   });
 
